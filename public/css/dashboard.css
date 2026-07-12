@@ -1,0 +1,48 @@
+/* =========================================================
+   dashboard.css — Dashboard-only layout pieces
+   ========================================================= */
+
+.t8-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--t8-space-4);
+    margin-bottom: var(--t8-space-5);
+}
+.t8-stat-card {
+    background: var(--t8-surface);
+    border: 1px solid var(--t8-border);
+    border-top: 3px solid var(--t8-navy-700);
+    border-radius: var(--t8-radius);
+    padding: var(--t8-space-4);
+}
+.t8-stat-value {
+    font-family: var(--t8-font-data);
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--t8-navy-900);
+}
+.t8-stat-label {
+    font-size: 0.78rem;
+    color: var(--t8-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.t8-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--t8-space-3);
+    margin-bottom: var(--t8-space-5);
+}
+
+.t8-activity-list { display: flex; flex-direction: column; }
+.t8-activity-item {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--t8-space-3);
+    padding: var(--t8-space-3) 0;
+    border-bottom: 1px solid var(--t8-border);
+    font-size: 0.88rem;
+}
+.t8-activity-item:last-child { border-bottom: none; }
+.t8-activity-time { color: var(--t8-text-muted); font-family: var(--t8-font-data); font-size: 0.78rem; white-space: nowrap; }

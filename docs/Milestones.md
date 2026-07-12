@@ -1,0 +1,43 @@
+# Milestones
+
+Build one milestone at a time. Complete testing before moving to the next.
+Keep commits small and meaningful. Update this file's checkboxes and
+`docs/Database.md` / `docs/API.md` after each completed milestone.
+
+- [x] **Milestone 0 — Project Setup**
+      Folder structure, `.env` config, PDO connection, front-controller
+      routing, base layout (navbar/sidebar/footer), vanilla CSS design
+      system, JS setup.
+- [x] **Milestone 1 — Authentication (temporary stand-in)** — real
+      login/logout built by Team 8 (`login.php`, `logout.php`) against
+      the shared `users` table, since the owning team's system-wide
+      module hasn't landed yet. See `docs/Auth.md`. Will be swapped
+      for the real thing once available — no other module code should
+      need to change when that happens.
+- [ ] **Milestone 2 — Dashboard** — statistics, recent activity, quick
+      actions, notifications
+- [ ] **Milestone 3 — Reservation Module** — create/update/cancel,
+      approval workflow, reservation calendar
+- [ ] **Milestone 4 — Visitor Management** — registration, check-in/out,
+      visitor history
+- [ ] **Milestone 5 — Document Management** — upload, download, search,
+      archive, categories
+- [ ] **Milestone 6 — Records Retention** — retention policies,
+      expiration, disposal schedule, archive
+- [ ] **Milestone 7 — Legal Documents** — legal records, compliance,
+      case tracking
+- [ ] **Milestone 8 — Contract Management** — contract records, renewal
+      reminders, expiration tracking
+- [ ] **Milestone 9 — Reports** — reservation/visitor/document reports,
+      export to PDF/Excel
+- [ ] **Milestone 10 — System Completion** — testing, bug fixes,
+      performance optimization, documentation, deployment prep
+
+## Future Improvements (post-Milestone 10, not scheduled)
+- Email notifications
+- SMS notifications
+- QR code check-in
+- Audit log UI / activity timeline
+- Multi-office support
+- Dark mode
+- Responsive mobile UI polish

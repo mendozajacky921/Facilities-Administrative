@@ -1,0 +1,19 @@
+# Environment / secrets
+.env
+
+# Uploaded files (user content, not source)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependency dirs (if composer/npm ever get introduced later)
+vendor/
+node_modules/
+
+# Logs
+*.log
