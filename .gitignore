@@ -2,20 +2,18 @@
 public/uploads/*
 !public/uploads/.gitkeep
 
-# OS / editor cruft
+# OS / editor files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
-# Dependency dirs (if composer/npm ever get introduced later)
+# Dependencies
 vendor/
 node_modules/
 
 # Logs
 *.log
 
-.htaccess
+# Local database config
 app/config/database.php
-database/
-docs/
