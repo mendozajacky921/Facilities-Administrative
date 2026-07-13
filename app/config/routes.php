@@ -2,7 +2,18 @@
 /**
  * routes.php
  * Whitelist map for the front controller (index.php).
- * key = value of ?page=  |  value = module entry file (relative to app root)
+ *
+ * FIX (Medium, code review): this list used to be hand-duplicated in
+ * three places (T8_PAGES in constants.php, this file, and $navItems
+ * in templates/sidebar.php) with no single source of truth, so it
+ * could silently drift. This file is now THE source of truth — each
+ * route carries both its entry file and its nav label. T8_PAGES
+ * (constants.php) derives its keys from here, and sidebar.php reads
+ * the labels from here instead of keeping its own list.
+ *
+ * key = value of ?page=
+ *   file  = module entry file, relative to project root
+ *   label = text shown in the sidebar nav
  *
  * This is intentionally a flat array, not a "router class" — the project
  * has no framework, and a single lookup table is enough for 7 pages.
@@ -13,11 +24,11 @@
 declare(strict_types=1);
 
 return [
-    'dashboard'   => 'modules/dashboard/index.php',
-    'reservation' => 'modules/reservation/index.php',
-    'visitor'     => 'modules/visitor/index.php',
-    'documents'   => 'modules/documents/index.php',
-    'retention'   => 'modules/retention/index.php',
-    'legal'       => 'modules/legal/index.php',
-    'contracts'   => 'modules/contracts/index.php',
+    'dashboard'   => ['file' => 'modules/dashboard/index.php',   'label' => 'Dashboard'],
+    'reservation' => ['file' => 'modules/reservation/index.php', 'label' => 'Facilities Reservation'],
+    'visitor'     => ['file' => 'modules/visitor/index.php',     'label' => 'Visitor Management'],
+    'documents'   => ['file' => 'modules/documents/index.php',   'label' => 'Document Management'],
+    'retention'   => ['file' => 'modules/retention/index.php',   'label' => 'Records Retention'],
+    'legal'       => ['file' => 'modules/legal/index.php',       'label' => 'Legal Management'],
+    'contracts'   => ['file' => 'modules/contracts/index.php',   'label' => 'Contract Management'],
 ];

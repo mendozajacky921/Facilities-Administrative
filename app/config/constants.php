@@ -8,17 +8,12 @@
 
 declare(strict_types=1);
 
-// Route keys recognized by the front controller (index.php).
-// Keep in sync with app/config/routes.php.
-const T8_PAGES = [
-    'dashboard',
-    'reservation',
-    'visitor',
-    'documents',
-    'retention',
-    'legal',
-    'contracts',
-];
+// FIX (Medium, code review): T8_PAGES used to be a hand-maintained
+// literal list that had to be kept in sync with routes.php and
+// sidebar.php by hand. routes.php is now the single source of truth;
+// this just derives the key list from it so the two can't drift.
+// (define(), not const, since it depends on a runtime require().)
+define('T8_PAGES', array_keys(require __DIR__ . '/routes.php'));
 
 // Roles expected from the shared `roles` table (auth team owns the real
 // source of truth — mirror values here only for local checks/UI logic).

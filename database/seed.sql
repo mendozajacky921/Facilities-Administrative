@@ -12,6 +12,11 @@
 --     Password123!
 -- This is a bcrypt hash of that string. Never reuse this pattern
 -- outside local/dev seed data.
+--
+-- NOTE (code review, Critical): this file is now blocked from direct
+-- HTTP access by database/.htaccess and the root .htaccess - see
+-- those files for details. Never rely on that alone in production;
+-- these are dev-only credentials.
 
 INSERT INTO departments (id, name) VALUES
     (1, 'Facilities & Administration'),

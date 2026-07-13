@@ -13,7 +13,14 @@ declare(strict_types=1);
     <div class="t8-navbar-user">
         <span class="t8-navbar-username"><?= e(t8_current_user_name()) ?></span>
         <span class="t8-badge t8-badge-role"><?= e(t8_current_role() ?? 'guest') ?></span>
-        <!-- Logout is owned by the auth team; wire the real endpoint once known. -->
-        <a href="<?= e(APP_URL) ?>/logout.php" class="t8-btn t8-btn-ghost t8-btn-sm">Logout</a>
+        <!--
+            FIX (High, code review): logout used to be a bare GET
+            <a href>, which is a known anti-pattern for state-changing
+            actions (prefetch/crawlers can silently log a user out).
+            Now a POST form; logout.php rejects non-POST requests.
+        -->
+        <form method="post" action="<?= e(APP_URL) ?>/logout.php" class="t8-navbar-logout-form">
+            <button type="submit" class="t8-btn t8-btn-ghost t8-btn-sm">Logout</button>
+        </form>
     </div>
 </header>

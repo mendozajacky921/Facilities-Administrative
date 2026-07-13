@@ -11,7 +11,7 @@ module hasn't been integrated yet, so Team 8 built a minimal
   `password_verify()`), looks up the user's role from
   `user_roles`/`roles`, and sets a real PHP session.
 - `logout.php` — destroys the session, clears the cookie, redirects
-  to `login.php`.
+  to `login.php`. **POST-only** (see code review fixes below).
 - `app/includes/auth_check.php` — guards every page behind the front
   controller. If there's no session, redirects to `login.php`.
 
@@ -35,11 +35,32 @@ reads these, nothing reads `$_SESSION` directly outside `auth_check.php`:
   so the form doesn't leak which emails exist.
 - `session_regenerate_id(true)` on successful login to prevent session
   fixation.
+- **Session cookies are hardened** (`httponly`, `samesite=Lax`, and
+  `secure` when `APP_URL` is https) via a single `t8_session_start()`
+  helper (`app/includes/helpers.php`), called from `auth_check.php`,
+  `login.php`, and `logout.php` instead of each calling a raw
+  `session_start()`.
+- **Brute-force throttling**: `login.php` locks out further attempts
+  for 5 minutes after 5 failed attempts in a row (session-based
+  counter). This is a basic deterrent suitable for a capstone
+  demo/local server — not a substitute for IP-based rate limiting or
+  a real lockout table if this ever sits on a shared/public host.
+- **Logout is a POST-only action** (`templates/navbar.php` submits a
+  small `<form>`; `logout.php` rejects non-POST requests with 405).
+  Previously a bare GET `<a href>`, which is a known anti-pattern for
+  state-changing actions (prefetch/crawlers could silently log a user
+  out).
+- **Audit logging**: successful logins, logouts, and 403s (denied by
+  `t8_require_role()`) are written to the shared `audit_logs` table
+  via `app/includes/audit.php`'s `t8_audit_log()`. Best-effort only —
+  a logging failure never blocks the actual login/logout/403 response.
 
 ## Dev convenience
-`AUTH_DEV_BYPASS=true` in `.env` (local env only) skips the login form
-and auto-signs in as the seeded "Dev Tester" (admin role). Off by
-default — flip it on only for quick throwaway testing.
+`AUTH_DEV_BYPASS` is a constant in `app/config/config.php` (no `.env`
+file — see that file's docblock). Set it to `true` (local env only) to
+skip the login form entirely and auto-sign in as the seeded
+"Dev Tester" (admin role). Off by default — flip it on only for quick
+throwaway testing.
 
 ## Seeded demo accounts (`database/seed.sql`)
 All seeded accounts share the password `Password123!`:
@@ -50,6 +71,10 @@ All seeded accounts share the password `Password123!`:
 | `facilities@example.local` | facilities_staff |
 | `frontdesk@example.local` | front_desk |
 | `legal@example.local` | legal_officer |
+
+`database/seed.sql` (hashes + emails) is blocked from direct HTTP
+access by the root and `database/` `.htaccess` files — see
+`docs/Database.md`.
 
 ## Swapping in the real system
 When the owning team's auth module is ready:

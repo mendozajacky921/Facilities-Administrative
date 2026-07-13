@@ -1,9 +1,14 @@
 <?php
 /**
  * helpers.php
- * Small stateless utility functions shared by every module/template.
- * Keep this file dependency-free (no DB, no session) so it can be
- * required anywhere safely.
+ * Small stateless-ish utility functions shared by every module/template.
+ *
+ * FIX (Low, code review): this docblock used to claim "no DB, no
+ * session" so it could be required anywhere safely, but t8_flash_*()
+ * and the CSRF helpers below always touched $_SESSION - the comment
+ * was wrong. Corrected: this file has no DB dependency, but several
+ * functions do read/write $_SESSION, so a session must already be
+ * started (see t8_session_start() below) before those are called.
  */
 
 declare(strict_types=1);
@@ -48,6 +53,34 @@ if (!function_exists('redirect')) {
     }
 }
 
+if (!function_exists('t8_session_start')) {
+    /**
+     * FIX (Medium, code review): session_start() used to be called
+     * directly from three separate places (auth_check.php, login.php,
+     * logout.php) with no cookie hardening. This is now the single
+     * place that configures cookie params (httponly/samesite, and
+     * secure when APP_URL is https) before starting the session -
+     * call this instead of session_start() everywhere.
+     */
+    function t8_session_start(): void
+    {
+        if (session_status() !== PHP_SESSION_NONE) {
+            return;
+        }
+
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'domain'   => '',
+            'secure'   => str_starts_with(strtolower((string) (defined('APP_URL') ? APP_URL : '')), 'https://'),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+
+        session_start();
+    }
+}
+
 if (!function_exists('t8_flash_set')) {
     function t8_flash_set(string $type, string $message): void
     {
@@ -85,7 +118,7 @@ if (!function_exists('current_page')) {
 }
 
 if (!function_exists('t8_csrf_token')) {
-    /** Generates (or reuses) a per-session CSRF token. Call session_start() first. */
+    /** Generates (or reuses) a per-session CSRF token. Call t8_session_start() first. */
     function t8_csrf_token(): string
     {
         if (empty($_SESSION['t8_csrf'])) {

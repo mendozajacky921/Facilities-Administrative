@@ -1,6 +1,3 @@
-# Environment / secrets
-.env
-
 # Uploaded files (user content, not source)
 public/uploads/*
 !public/uploads/.gitkeep
@@ -17,3 +14,8 @@ node_modules/
 
 # Logs
 *.log
+
+.htaccess
+app/config/database.php
+database/
+docs/

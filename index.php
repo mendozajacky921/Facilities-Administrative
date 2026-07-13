@@ -19,12 +19,22 @@ require_once __DIR__ . '/app/includes/db_connect.php';
 require_once __DIR__ . '/app/includes/auth_check.php';   // sets up $_SESSION, redirects if unauthenticated
 require_once __DIR__ . '/app/includes/helpers.php';
 require_once __DIR__ . '/app/includes/permissions.php';
+require_once __DIR__ . '/app/includes/audit.php';
 
 $routes = require __DIR__ . '/app/config/routes.php';
 
 $page = $_GET['page'] ?? 'dashboard';
 
-if (!array_key_exists($page, $routes)) {
+// FIX (Medium, code review): routes.php now returns ['file' => ..,
+// 'label' => ..] per key instead of a bare file path string.
+$moduleFile = array_key_exists($page, $routes)
+    ? __DIR__ . '/' . $routes[$page]['file']
+    : null;
+
+// FIX (Low, code review): $moduleFile was require'd without checking
+// it actually exists, so a routes.php typo (or a moved/renamed module
+// file) became an uncaught fatal instead of a graceful error.
+if ($moduleFile === null || !is_file($moduleFile)) {
     http_response_code(404);
     $pageTitle = 'Page Not Found';
     require __DIR__ . '/templates/header.php';
@@ -36,8 +46,6 @@ if (!array_key_exists($page, $routes)) {
     require __DIR__ . '/templates/footer.php';
     exit;
 }
-
-$moduleFile = __DIR__ . '/' . $routes[$page];
 
 // $pageTitle can be overridden inside the module file before it echoes
 // content — templates/header.php reads it.

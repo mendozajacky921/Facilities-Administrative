@@ -21,6 +21,15 @@ $stats = [
     'Open Legal Cases'     => 0,
 ];
 
+// FIX (High, code review): this used to call t8_flash_set() on
+// failure, but templates/header.php already reads-and-clears the
+// flash stack (t8_flash_get()) before this module file even runs -
+// so the warning never appeared on THIS page load, only silently on
+// whatever page the user visited next. Flash is a next-request
+// pattern; a same-request error belongs in a local variable rendered
+// directly below, not a flash.
+$dbError = null;
+
 try {
     $stats['Pending Reservations'] = (int) $pdo
         ->query("SELECT COUNT(*) FROM team8_reservations WHERE status = 'pending'")
@@ -39,11 +48,15 @@ try {
         ->fetchColumn();
 } catch (PDOException $e) {
     // Tables may not be imported yet on a fresh clone - fail soft, not fatal.
-    t8_flash_set('warning', 'Could not load live stats - has database/schema.sql been imported yet?');
+    $dbError = 'Could not load live stats - has database/schema.sql been imported yet?';
 }
 ?>
 <h1>Welcome, <?= e(t8_current_user_name()) ?></h1>
 <p class="t8-help-text">Facilities &amp; Administrative Management overview.</p>
+
+<?php if ($dbError !== null): ?>
+    <div class="t8-alert t8-alert-warning"><?= e($dbError) ?></div>
+<?php endif; ?>
 
 <div class="t8-stat-grid">
     <?php foreach ($stats as $label => $value): ?>

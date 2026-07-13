@@ -1,85 +1,51 @@
 <?php
 /**
  * config.php
- * Loads .env into getenv()/$_ENV and exposes app-wide constants.
- * No framework/composer dependency — this is a minimal hand-rolled loader.
+ * App-wide configuration and constants.
+ *
+ * CHANGED (per request): this project no longer uses a .env file.
+ * All app-level settings are plain PHP constants below - edit the
+ * values directly for your local setup. DB credentials live in
+ * app/config/database.php (same approach, kept separate so the two
+ * concerns don't mix).
+ *
+ * This is a reasonable simplification for this project's scope: the
+ * whole app/ tree (including this file) is already blocked from
+ * direct HTTP access by the root .htaccess + app/.htaccess deny-all,
+ * the same protection a .env file relied on. If this codebase ever
+ * needs different settings per deploy environment (e.g. real staging
+ * vs. production with different DB creds), that's the point to
+ * reintroduce environment variables - not before.
  *
  * Include this ONCE, early, before anything else (db_connect.php requires it).
  */
 
 declare(strict_types=1);
 
-if (!function_exists('t8_load_env')) {
-    function t8_load_env(string $path): void
-    {
-        if (!is_file($path)) {
-            // Fail loudly in dev, quietly in prod (no .env committed on servers
-            // that inject real env vars another way).
-            if (getenv('APP_ENV') !== 'production') {
-                trigger_error("Missing .env file at {$path}. Copy .env.example to .env.", E_USER_WARNING);
-            }
-            return;
-        }
+// ---- App-wide settings — edit these for your environment ---------------
 
-        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $line = trim($line);
+define('APP_NAME', 'RAM YUM - Facilities & Administrative Management');
+define('APP_ENV', 'local');              // 'local' | 'production'
+define('APP_DEBUG', true);               // true = show real PHP errors (local only)
+define('APP_URL', 'http://localhost:8000');
+define('APP_TIMEZONE', 'Asia/Manila');
 
-            // Skip comments
-            if ($line === '' || str_starts_with($line, '#')) {
-                continue;
-            }
+define('DB_TEAM8_PREFIX', 'team8_');
 
-            if (!str_contains($line, '=')) {
-                continue;
-            }
+define('UPLOAD_MAX_SIZE_MB', 10);
+define('UPLOAD_DIR', dirname(__DIR__, 2) . '/public/uploads');
 
-            [$key, $value] = explode('=', $line, 2);
-            $key   = trim($key);
-            $value = trim($value);
+// TEMPORARY AUTH dev bypass (see login.php / logout.php / docs/Auth.md).
+// When true, skips the login form entirely and auto-logs in as the
+// seeded "Dev Tester" (user_id 1). Leave false unless doing quick
+// throwaway local testing — auth_check.php also requires
+// APP_ENV === 'local' regardless of this flag, so it can never
+// accidentally apply outside local dev.
+define('AUTH_DEV_BYPASS', false);
 
-            // Strip matching surrounding quotes
-            if (strlen($value) >= 2) {
-                $first = $value[0];
-                $last  = $value[strlen($value) - 1];
-                if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
-                    $value = substr($value, 1, -1);
-                }
-            }
+// ---- End editable section ------------------------------------------------
 
-            if ($key === '') {
-                continue;
-            }
-
-            putenv("{$key}={$value}");
-            $_ENV[$key]    = $value;
-            $_SERVER[$key] = $value;
-        }
-    }
-}
-
-if (!function_exists('env')) {
-    function env(string $key, $default = null)
-    {
-        $value = $_ENV[$key] ?? getenv($key);
-        return $value === false ? $default : $value;
-    }
-}
-
-// Load .env from project root (this file lives in app/config/)
-t8_load_env(dirname(__DIR__, 2) . '/.env');
-
-// ---- App-wide constants -------------------------------------------------
-
-define('APP_NAME', env('APP_NAME', 'RAM YUM Facilities & Administrative Management'));
-define('APP_ENV', env('APP_ENV', 'local'));
-define('APP_DEBUG', filter_var(env('APP_DEBUG', 'true'), FILTER_VALIDATE_BOOLEAN));
-define('APP_URL', rtrim(env('APP_URL', 'http://localhost:8000'), '/'));
-
-define('DB_TEAM8_PREFIX', env('DB_TEAM8_PREFIX', 'team8_'));
-
-define('UPLOAD_MAX_SIZE_MB', (int) env('UPLOAD_MAX_SIZE_MB', 10));
-define('UPLOAD_DIR', dirname(__DIR__, 2) . '/' . trim(env('UPLOAD_DIR', 'public/uploads'), '/'));
+date_default_timezone_set(APP_TIMEZONE);
 
 // Basic error visibility toggle for local dev vs prod
 if (APP_DEBUG) {

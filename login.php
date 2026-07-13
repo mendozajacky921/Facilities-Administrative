@@ -18,59 +18,89 @@ declare(strict_types=1);
 require_once __DIR__ . '/app/config/config.php';
 require_once __DIR__ . '/app/includes/db_connect.php';
 require_once __DIR__ . '/app/includes/helpers.php';
+require_once __DIR__ . '/app/includes/audit.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// FIX (Medium, code review): was a raw session_start(); now goes
+// through the shared, hardened t8_session_start().
+t8_session_start();
 
 // Already logged in? Skip the form.
 if (!empty($_SESSION['user_id'])) {
     redirect(APP_URL . '/index.php?page=dashboard');
 }
 
+// FIX (Medium, code review): docs/Auth.md claimed "temporary ≠
+// sloppy" but there was no attempt throttling at all. This is a
+// simple session-based lockout — good enough for a capstone demo,
+// not a substitute for a real rate limiter if this ever sits on a
+// shared/public server.
+const T8_LOGIN_MAX_ATTEMPTS  = 5;
+const T8_LOGIN_LOCKOUT_SECS  = 300; // 5 minutes
+
+$_SESSION['t8_login_attempts']    ??= 0;
+$_SESSION['t8_login_locked_until'] ??= 0;
+
+$isLockedOut = $_SESSION['t8_login_locked_until'] > time();
+
 $errors = [];
 $emailValue = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $emailValue = trim($_POST['email'] ?? '');
-    $password   = (string) ($_POST['password'] ?? '');
-
-    if (!t8_csrf_verify($_POST['csrf_token'] ?? null)) {
-        $errors[] = 'Your session expired. Please try again.';
-    } elseif ($emailValue === '' || $password === '') {
-        $errors[] = 'Email and password are both required.';
+    if ($isLockedOut) {
+        $waitSecs = $_SESSION['t8_login_locked_until'] - time();
+        $errors[] = "Too many failed attempts. Try again in {$waitSecs}s.";
     } else {
-        $stmt = $pdo->prepare(
-            'SELECT id, full_name, password_hash, department_id
-             FROM users
-             WHERE email = :email
-             LIMIT 1'
-        );
-        $stmt->execute(['email' => $emailValue]);
-        $user = $stmt->fetch();
+        $emailValue = trim($_POST['email'] ?? '');
+        $password   = (string) ($_POST['password'] ?? '');
 
-        if (!$user || !password_verify($password, $user['password_hash'])) {
-            // Deliberately vague — never reveal whether the email exists.
-            $errors[] = 'Invalid email or password.';
+        if (!t8_csrf_verify($_POST['csrf_token'] ?? null)) {
+            $errors[] = 'Your session expired. Please try again.';
+        } elseif ($emailValue === '' || $password === '') {
+            $errors[] = 'Email and password are both required.';
         } else {
-            $roleStmt = $pdo->prepare(
-                'SELECT r.role_name
-                 FROM user_roles ur
-                 JOIN roles r ON r.id = ur.role_id
-                 WHERE ur.user_id = :user_id
+            $stmt = $pdo->prepare(
+                'SELECT id, full_name, password_hash, department_id
+                 FROM users
+                 WHERE email = :email
                  LIMIT 1'
             );
-            $roleStmt->execute(['user_id' => $user['id']]);
-            $role = $roleStmt->fetchColumn();
+            $stmt->execute(['email' => $emailValue]);
+            $user = $stmt->fetch();
 
-            session_regenerate_id(true);
-            $_SESSION['user_id']       = (int) $user['id'];
-            $_SESSION['full_name']     = $user['full_name'];
-            $_SESSION['role']          = $role ?: 'employee';
-            $_SESSION['department_id'] = $user['department_id'] !== null ? (int) $user['department_id'] : null;
+            if (!$user || !password_verify($password, $user['password_hash'])) {
+                // Deliberately vague — never reveal whether the email exists.
+                $errors[] = 'Invalid email or password.';
 
-            t8_flash_set('success', 'Welcome back, ' . $user['full_name'] . '.');
-            redirect(APP_URL . '/index.php?page=dashboard');
+                $_SESSION['t8_login_attempts']++;
+                if ($_SESSION['t8_login_attempts'] >= T8_LOGIN_MAX_ATTEMPTS) {
+                    $_SESSION['t8_login_locked_until'] = time() + T8_LOGIN_LOCKOUT_SECS;
+                    $_SESSION['t8_login_attempts'] = 0;
+                    $errors = ['Too many failed attempts. Try again in ' . T8_LOGIN_LOCKOUT_SECS . 's.'];
+                }
+            } else {
+                $roleStmt = $pdo->prepare(
+                    'SELECT r.role_name
+                     FROM user_roles ur
+                     JOIN roles r ON r.id = ur.role_id
+                     WHERE ur.user_id = :user_id
+                     LIMIT 1'
+                );
+                $roleStmt->execute(['user_id' => $user['id']]);
+                $role = $roleStmt->fetchColumn();
+
+                session_regenerate_id(true);
+                $_SESSION['user_id']       = (int) $user['id'];
+                $_SESSION['full_name']     = $user['full_name'];
+                $_SESSION['role']          = $role ?: 'employee';
+                $_SESSION['department_id'] = $user['department_id'] !== null ? (int) $user['department_id'] : null;
+                $_SESSION['t8_login_attempts']     = 0;
+                $_SESSION['t8_login_locked_until'] = 0;
+
+                t8_audit_log($pdo, (int) $user['id'], 'user', (int) $user['id'], 'login');
+
+                t8_flash_set('success', 'Welcome back, ' . $user['full_name'] . '.');
+                redirect(APP_URL . '/index.php?page=dashboard');
+            }
         }
     }
 }
@@ -104,15 +134,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="t8-field">
                 <label class="t8-label" for="email">Email</label>
                 <input class="t8-input" type="email" id="email" name="email"
-                       value="<?= e($emailValue) ?>" required autofocus>
+                       value="<?= e($emailValue) ?>" required autofocus
+                       <?= $isLockedOut ? 'disabled' : '' ?>>
             </div>
 
             <div class="t8-field">
                 <label class="t8-label" for="password">Password</label>
-                <input class="t8-input" type="password" id="password" name="password" required>
+                <input class="t8-input" type="password" id="password" name="password" required
+                       <?= $isLockedOut ? 'disabled' : '' ?>>
             </div>
 
-            <button class="t8-btn t8-btn-accent t8-auth-submit" type="submit">Sign In</button>
+            <button class="t8-btn t8-btn-accent t8-auth-submit" type="submit" <?= $isLockedOut ? 'disabled' : '' ?>>
+                Sign In
+            </button>
         </form>
 
         <p class="t8-help-text t8-auth-hint">

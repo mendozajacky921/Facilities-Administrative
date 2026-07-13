@@ -12,6 +12,24 @@
   other 9 teams' tables in the same database.
 - Standard audit fields on Team 8 tables: `created_at`, `updated_at`,
   and (where meaningful) `deleted_at` for soft deletes.
+- **`database/*.sql` is never meant to be served over HTTP.** Fixed
+  (Critical, code review): the README instructs dropping this repo
+  straight into `htdocs/`, and with no server-level deny rule,
+  `database/seed.sql` (bcrypt hashes + emails of every seeded account)
+  and `database/schema.sql` were directly downloadable. Both the root
+  `.htaccess` and `database/.htaccess` now deny this tree at the
+  web-server level. Don't rely on this alone in production — treat
+  `.sql` files as secrets regardless.
+- **DB credentials live in `app/config/database.php`, not a `.env`
+  file.** Same protection applies: the root `.htaccess` and
+  `app/.htaccess` deny direct HTTP access to the whole `app/` tree.
+  Edit the `DB_HOST`/`DB_NAME`/`DB_USER`/`DB_PASS` constants at the
+  top of that file for your local MySQL setup.
+- **`audit_logs` is now written to**, not just defined in the schema.
+  `app/includes/audit.php`'s `t8_audit_log()` currently logs: login,
+  logout, and 403 (role-denied) events. More entity types (reservations,
+  documents, etc.) should log through the same helper as those modules
+  land, so Milestone 2's "Recent Activity" feed has real data to read.
 
 ## Modules → tables
 | Module | Tables |

@@ -5,9 +5,9 @@ Keep commits small and meaningful. Update this file's checkboxes and
 `docs/Database.md` / `docs/API.md` after each completed milestone.
 
 - [x] **Milestone 0 — Project Setup**
-      Folder structure, `.env` config, PDO connection, front-controller
-      routing, base layout (navbar/sidebar/footer), vanilla CSS design
-      system, JS setup.
+      Folder structure, plain-PHP-constant config (`app/config/config.php`
+      / `database.php`), PDO connection, front-controller routing, base
+      layout (navbar/sidebar/footer), vanilla CSS design system, JS setup.
 - [x] **Milestone 1 — Authentication (temporary stand-in)** — real
       login/logout built by Team 8 (`login.php`, `logout.php`) against
       the shared `users` table, since the owning team's system-wide

@@ -18,22 +18,28 @@
  *      $_SESSION['role']          (string, e.g. 'admin')
  *      $_SESSION['department_id']
  *
- * AUTH_DEV_BYPASS=true in .env skips login.php entirely and auto-logs
- * in as the seeded "Dev Tester" — opt-in only, off by default, and
- * only ever active when APP_ENV=local regardless of the flag.
+ * AUTH_DEV_BYPASS=true (app/config/config.php) skips login.php
+ * entirely and auto-logs in as the seeded "Dev Tester" — opt-in only,
+ * off by default, and only ever active when APP_ENV=local regardless
+ * of the flag.
  * ---------------------------------------------------------------
  */
 
 declare(strict_types=1);
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/helpers.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// FIX (Medium, code review): was a raw session_start() with no cookie
+// hardening; now goes through the shared, hardened t8_session_start()
+// (httponly/samesite/secure cookie params) so all three session
+// entry points (here, login.php, logout.php) stay in sync.
+t8_session_start();
 
 // ---- Optional dev bypass (local env only, off by default) --------------
-$devBypass = APP_ENV === 'local' && filter_var(env('AUTH_DEV_BYPASS', 'false'), FILTER_VALIDATE_BOOLEAN);
+// CHANGED (per request): AUTH_DEV_BYPASS is now a plain constant from
+// config.php (no more .env/env()).
+$devBypass = APP_ENV === 'local' && AUTH_DEV_BYPASS === true;
 if ($devBypass && empty($_SESSION['user_id'])) {
     $_SESSION['user_id']       = 1;
     $_SESSION['full_name']     = 'Dev Tester';
