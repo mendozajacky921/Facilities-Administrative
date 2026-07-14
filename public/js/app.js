@@ -4,6 +4,12 @@
  * messages. Module-specific JS lives in the module's own file,
  * loaded conditionally from templates/footer.php - keep this file
  * generic, not module-aware.
+ *
+ * REDESIGN ADDITION: a second, independent block below adds the
+ * optional desktop sidebar collapse toggle (#t8SidebarCollapseToggle,
+ * templates/sidebar.php). It only touches a new class
+ * (.t8-sidebar-collapsed on .t8-shell) and does not modify or
+ * interfere with the mobile toggle logic above it.
  */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -26,4 +32,15 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 300);
         }, 5000);
     });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    var collapseBtn = document.getElementById("t8SidebarCollapseToggle");
+    var shell = document.querySelector(".t8-shell");
+
+    if (collapseBtn && shell) {
+        collapseBtn.addEventListener("click", function () {
+            shell.classList.toggle("t8-sidebar-collapsed");
+        });
+    }
 });

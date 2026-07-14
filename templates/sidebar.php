@@ -1,20 +1,54 @@
 <?php
+/**
+ * templates/sidebar.php
+ *
+ * REDESIGN: dark maroon gradient sidebar with the real RAM-YUM logo,
+ * icon + label nav items, rounded active state, and an optional
+ * desktop collapse toggle (public/js/app.js, additive only).
+ *
+ * Labels/routes still come from app/config/routes.php - the single
+ * source of truth (see docs/API.md's Medium fix note). $t8NavIcons
+ * below is a purely cosmetic, LOCAL lookup for which Font Awesome
+ * icon each route gets; it does not change routes.php's contract or
+ * T8_PAGES, and a route missing from this map just falls back to a
+ * generic icon instead of breaking.
+ */
 declare(strict_types=1);
 
-// FIX (Medium, code review): this used to keep its own hand-written
-// $navItems list, duplicating routes.php and constants.php's T8_PAGES.
-// Labels now come straight from routes.php (the single source of
-// truth - see app/config/routes.php).
 $t8Routes = require __DIR__ . '/../app/config/routes.php';
 $active   = current_page();
+
+$t8NavIcons = [
+    'dashboard'   => 'fa-gauge-high',
+    'reservation' => 'fa-calendar-check',
+    'visitor'     => 'fa-id-card-clip',
+    'documents'   => 'fa-file-lines',
+    'retention'   => 'fa-box-archive',
+    'legal'       => 'fa-scale-balanced',
+    'contracts'   => 'fa-file-contract',
+];
 ?>
 <aside class="t8-sidebar" id="t8Sidebar">
+    <div class="t8-sidebar-brand">
+        <img class="t8-sidebar-logo" src="<?= e(asset('img/ramyumlogo.jpg')) ?>" alt="<?= e(APP_NAME) ?> logo">
+        <div class="t8-sidebar-brand-text">
+            <div class="t8-sidebar-brand-name">RAM-YUM Store</div>
+            <div class="t8-sidebar-brand-tag">Korean &amp; Japanese Store</div>
+        </div>
+    </div>
+
     <nav class="t8-sidebar-nav">
         <?php foreach ($t8Routes as $key => $route): ?>
             <a href="<?= e(page_url($key)) ?>"
                class="t8-sidebar-link<?= $active === $key ? ' t8-sidebar-link-active' : '' ?>">
+                <i class="fa-solid <?= e($t8NavIcons[$key] ?? 'fa-circle-dot') ?>"></i>
                 <span class="t8-sidebar-label"><?= e($route['label']) ?></span>
             </a>
         <?php endforeach; ?>
     </nav>
+
+    <button class="t8-sidebar-collapse-btn" id="t8SidebarCollapseToggle" type="button" aria-label="Collapse sidebar">
+        <i class="fa-solid fa-angles-left"></i>
+        <span>Collapse</span>
+    </button>
 </aside>

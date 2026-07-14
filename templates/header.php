@@ -2,6 +2,11 @@
 /**
  * templates/header.php
  *
+ * REDESIGN: added Google Fonts (Poppins) and Font Awesome (icons used
+ * throughout the new sidebar/navbar/dashboard). Everything else about
+ * this file's contract is unchanged from the previous version - see
+ * the original docblock notes below.
+ *
  * FIX (Medium, code review): this template reaches into the including
  * scope's local variables ($pageTitle, $page) implicitly rather than
  * receiving them as parameters - that's fine for `require` (shares
@@ -25,6 +30,11 @@ $page      = $page ?? current_page();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?> · <?= e(APP_NAME) ?></title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
     <link rel="stylesheet" href="<?= e(asset('css/style.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">

@@ -8,6 +8,12 @@
  *
  * $pdo, e(), page_url() etc. are all available here - the front
  * controller (index.php) already required everything needed.
+ *
+ * REDESIGN NOTE: all query logic below is unchanged. Only the markup
+ * changed - stat cards now show an icon in a colored circle, and
+ * quick actions/recent activity are laid out per the reference
+ * dashboard (two-column grid on wider screens via .t8-dashboard-grid,
+ * dashboard.css).
  */
 
 declare(strict_types=1);
@@ -19,6 +25,16 @@ $stats = [
     'Visitors Today'       => 0,
     'Active Contracts'     => 0,
     'Open Legal Cases'     => 0,
+];
+
+// Cosmetic-only metadata per stat card (icon + color variant). Purely
+// a display lookup keyed by the same labels above - does not touch
+// the $stats values or the queries that populate them.
+$statMeta = [
+    'Pending Reservations' => ['icon' => 'fa-calendar-check', 'variant' => ''],
+    'Visitors Today'       => ['icon' => 'fa-id-card-clip',   'variant' => 't8-stat-icon-info'],
+    'Active Contracts'     => ['icon' => 'fa-file-contract',  'variant' => 't8-stat-icon-success'],
+    'Open Legal Cases'     => ['icon' => 'fa-scale-balanced', 'variant' => 't8-stat-icon-warning'],
 ];
 
 // FIX (High, code review): this used to call t8_flash_set() on
@@ -60,24 +76,44 @@ try {
 
 <div class="t8-stat-grid">
     <?php foreach ($stats as $label => $value): ?>
+        <?php $meta = $statMeta[$label] ?? ['icon' => 'fa-chart-simple', 'variant' => '']; ?>
         <div class="t8-stat-card">
-            <div class="t8-stat-value"><?= e((string) $value) ?></div>
-            <div class="t8-stat-label"><?= e($label) ?></div>
+            <div class="t8-stat-icon <?= e($meta['variant']) ?>">
+                <i class="fa-solid <?= e($meta['icon']) ?>"></i>
+            </div>
+            <div class="t8-stat-body">
+                <div class="t8-stat-value"><?= e((string) $value) ?></div>
+                <div class="t8-stat-label"><?= e($label) ?></div>
+            </div>
         </div>
     <?php endforeach; ?>
 </div>
 
-<div class="t8-card">
-    <div class="t8-card-title">Quick Actions</div>
-    <div class="t8-quick-actions">
-        <a class="t8-btn t8-btn-accent" href="<?= e(page_url('reservation')) ?>">New Reservation</a>
-        <a class="t8-btn t8-btn-outline" href="<?= e(page_url('visitor')) ?>">Register Visitor</a>
-        <a class="t8-btn t8-btn-outline" href="<?= e(page_url('documents')) ?>">Upload Document</a>
-        <a class="t8-btn t8-btn-outline" href="<?= e(page_url('contracts')) ?>">New Contract</a>
+<div class="t8-dashboard-grid">
+    <div class="t8-card">
+        <div class="t8-card-header">
+            <h2 class="t8-card-title">Quick Actions</h2>
+        </div>
+        <div class="t8-quick-actions">
+            <a class="t8-btn t8-btn-accent" href="<?= e(page_url('reservation')) ?>">
+                <i class="fa-solid fa-calendar-plus"></i> New Reservation
+            </a>
+            <a class="t8-btn t8-btn-outline" href="<?= e(page_url('visitor')) ?>">
+                <i class="fa-solid fa-id-card-clip"></i> Register Visitor
+            </a>
+            <a class="t8-btn t8-btn-outline" href="<?= e(page_url('documents')) ?>">
+                <i class="fa-solid fa-file-arrow-up"></i> Upload Document
+            </a>
+            <a class="t8-btn t8-btn-outline" href="<?= e(page_url('contracts')) ?>">
+                <i class="fa-solid fa-file-contract"></i> New Contract
+            </a>
+        </div>
     </div>
-</div>
 
-<div class="t8-card">
-    <div class="t8-card-title">Recent Activity</div>
-    <div class="t8-empty">Activity feed lands in Milestone 2 (reads from the shared <code>audit_logs</code> table).</div>
+    <div class="t8-card">
+        <div class="t8-card-header">
+            <h2 class="t8-card-title">Recent Activity</h2>
+        </div>
+        <div class="t8-empty">Activity feed lands in Milestone 2 (reads from the shared <code>audit_logs</code> table).</div>
+    </div>
 </div>
