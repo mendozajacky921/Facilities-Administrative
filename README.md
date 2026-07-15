@@ -40,6 +40,15 @@ framework — routing is a small hand-rolled front controller
 5. Visit `http://localhost:8000/index.php?page=dashboard` (or just
    `http://localhost:8000/dashboard.php`, which redirects there).
 
+   SIMPLIFIED SETUP
+  - DL & INSTALL XAMMP
+  - START APCHE & MYSQL
+  - OPEN PHPMYADMIN
+  - CLICK DATABASE & CREATE 1
+  - NAME IT "capstone_shared_db"
+  - IMPORT SQL "schema" | "seed.sql" [OPTIONAL]
+  - START LOCAL HOST "php -S localhost:8000"
+
 > **Note:** PHP's built-in dev server (`php -S`) does **not** read
 > `.htaccess`. The deny rules that block `database/`/`app/` from being
 > served (see Security note below) only take effect under Apache.
