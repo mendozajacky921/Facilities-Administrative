@@ -45,6 +45,8 @@ $statMeta = [
 // pattern; a same-request error belongs in a local variable rendered
 // directly below, not a flash.
 $dbError = null;
+$recentActivities = [];
+$notifications = [];
 
 try {
     $stats['Pending Reservations'] = (int) $pdo
@@ -66,6 +68,34 @@ try {
     // Tables may not be imported yet on a fresh clone - fail soft, not fatal.
     $dbError = 'Could not load live stats - has database/schema.sql been imported yet?';
 }
+
+try {
+    $recentActivities = $pdo->query(
+        'SELECT a.action, a.entity_type, a.created_at, u.full_name
+         FROM audit_logs a
+         INNER JOIN users u ON u.id = a.user_id
+         ORDER BY a.created_at DESC, a.id DESC
+         LIMIT 6'
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    $notificationStmt = $pdo->prepare(
+        'SELECT message, status, created_at
+         FROM notifications
+         WHERE user_id = :user_id
+         ORDER BY created_at DESC, id DESC
+         LIMIT 5'
+    );
+    $notificationStmt->execute(['user_id' => t8_current_user_id()]);
+    $notifications = $notificationStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $dbError ??= 'Could not load all dashboard information - has database/schema.sql been imported yet?';
+}
+
+$activityIcons = [
+    'login' => 'fa-right-to-bracket',
+    'logout' => 'fa-right-from-bracket',
+    '403_denied' => 'fa-shield-halved',
+];
 ?>
 <h1>Welcome, <?= e(t8_current_user_name()) ?></h1>
 <p class="t8-help-text">Facilities &amp; Administrative Management overview.</p>
@@ -114,6 +144,46 @@ try {
         <div class="t8-card-header">
             <h2 class="t8-card-title">Recent Activity</h2>
         </div>
-        <div class="t8-empty">Activity feed lands in Milestone 2 (reads from the shared <code>audit_logs</code> table).</div>
+        <?php if ($recentActivities === []): ?>
+            <div class="t8-empty">No activity has been recorded yet.</div>
+        <?php else: ?>
+            <div class="t8-activity-list">
+                <?php foreach ($recentActivities as $activity): ?>
+                    <?php
+                    $action = (string) $activity['action'];
+                    $description = sprintf('%s %s %s', (string) $activity['full_name'], str_replace('_', ' ', $action), str_replace('_', ' ', (string) $activity['entity_type']));
+                    ?>
+                    <div class="t8-activity-item">
+                        <span class="t8-activity-icon"><i class="fa-solid <?= e($activityIcons[$action] ?? 'fa-clock-rotate-left') ?>"></i></span>
+                        <span class="t8-activity-text"><?= e(ucfirst($description)) ?></span>
+                        <time class="t8-activity-time" datetime="<?= e((string) $activity['created_at']) ?>"><?= e(format_date((string) $activity['created_at'], 'M d, g:i A')) ?></time>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
+
+<section class="t8-card t8-notifications-card" id="notifications">
+    <div class="t8-card-header">
+        <h2 class="t8-card-title">Notifications</h2>
+        <?php if ($t8UnreadNotifications > 0): ?>
+            <span class="t8-notification-count"><?= e((string) $t8UnreadNotifications) ?> unread</span>
+        <?php endif; ?>
+    </div>
+    <?php if ($notifications === []): ?>
+        <div class="t8-empty">You have no notifications.</div>
+    <?php else: ?>
+        <div class="t8-notification-list">
+            <?php foreach ($notifications as $notification): ?>
+                <div class="t8-notification-item<?= $notification['status'] === 'unread' ? ' t8-notification-unread' : '' ?>">
+                    <i class="fa-regular fa-bell"></i>
+                    <div>
+                        <p><?= e((string) $notification['message']) ?></p>
+                        <time datetime="<?= e((string) $notification['created_at']) ?>"><?= e(format_date((string) $notification['created_at'], 'M d, Y g:i A')) ?></time>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>

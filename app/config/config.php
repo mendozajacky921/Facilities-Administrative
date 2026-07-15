@@ -3,19 +3,6 @@
  * config.php
  * App-wide configuration and constants.
  *
- * CHANGED (per request): this project no longer uses a .env file.
- * All app-level settings are plain PHP constants below - edit the
- * values directly for your local setup. DB credentials live in
- * app/config/database.php (same approach, kept separate so the two
- * concerns don't mix).
- *
- * This is a reasonable simplification for this project's scope: the
- * whole app/ tree (including this file) is already blocked from
- * direct HTTP access by the root .htaccess + app/.htaccess deny-all,
- * the same protection a .env file relied on. If this codebase ever
- * needs different settings per deploy environment (e.g. real staging
- * vs. production with different DB creds), that's the point to
- * reintroduce environment variables - not before.
  *
  * Include this ONCE, early, before anything else (db_connect.php requires it).
  */
@@ -27,7 +14,7 @@ declare(strict_types=1);
 define('APP_NAME', 'RAM YUM - Facilities & Administrative Management');
 define('APP_ENV', 'local');              // 'local' | 'production'
 define('APP_DEBUG', true);               // true = show real PHP errors (local only)
-define('APP_URL', 'http://localhost:8000');
+define('APP_URL', 'http://localhost:8000'); 
 define('APP_TIMEZONE', 'Asia/Manila');
 
 define('DB_TEAM8_PREFIX', 'team8_');

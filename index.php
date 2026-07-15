@@ -20,10 +20,12 @@ require_once __DIR__ . '/app/includes/auth_check.php';   // sets up $_SESSION, r
 require_once __DIR__ . '/app/includes/helpers.php';
 require_once __DIR__ . '/app/includes/permissions.php';
 require_once __DIR__ . '/app/includes/audit.php';
+require_once __DIR__ . '/app/includes/notifications.php';
 
 $routes = require __DIR__ . '/app/config/routes.php';
 
 $page = $_GET['page'] ?? 'dashboard';
+$t8UnreadNotifications = t8_unread_notification_count($pdo, t8_current_user_id());
 
 // FIX (Medium, code review): routes.php now returns ['file' => ..,
 // 'label' => ..] per key instead of a bare file path string.

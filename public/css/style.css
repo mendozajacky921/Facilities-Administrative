@@ -173,16 +173,24 @@ code { font-family: var(--t8-font-data); }
     justify-content: center;
     color: var(--t8-text);
     flex-shrink: 0;
+    text-decoration: none;
 }
+.t8-navbar-bell:hover { color: var(--t8-primary); }
 .t8-navbar-bell-dot {
     position: absolute;
-    top: 7px;
-    right: 8px;
-    width: 8px;
-    height: 8px;
+    top: 2px;
+    right: 1px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
     border-radius: 50%;
     background: var(--t8-danger);
     border: 2px solid var(--t8-surface);
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 700;
+    line-height: 12px;
+    text-align: center;
 }
 
 .t8-navbar-avatar {

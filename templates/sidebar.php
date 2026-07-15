@@ -32,8 +32,8 @@ $t8NavIcons = [
     <div class="t8-sidebar-brand">
         <img class="t8-sidebar-logo" src="<?= e(asset('img/ramyumlogo.jpg')) ?>" alt="<?= e(APP_NAME) ?> logo">
         <div class="t8-sidebar-brand-text">
-            <div class="t8-sidebar-brand-name">RAM-YUM Store</div>
-            <div class="t8-sidebar-brand-tag">Korean &amp; Japanese Store</div>
+            <div class="t8-sidebar-brand-name">RAM YUM</div>
+            <div class="t8-sidebar-brand-tag">Facilities &amp; Administration</div>
         </div>
     </div>
 

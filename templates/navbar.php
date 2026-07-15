@@ -9,10 +9,8 @@
  * logout.php (see docs/Auth.md / TechDebt.md - do not revert to a
  * GET link).
  *
- * The search bar and notification bell are DECORATIVE ONLY - there is
- * no backend search or notification system in this codebase yet, so
- * wiring them up is out of scope here. They're inert markup so the
- * page matches the reference visually without inventing fake behavior.
+ * Search remains decorative. The notification bell links to the dashboard's
+ * live current-user notification list; its count is prepared by index.php.
  *
  * Expects (optionally) from the including scope:
  *   $pageTitle - string, defaults to APP_NAME (same contract as header.php)
@@ -25,7 +23,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
 // Not part of routes.php's contract (file/label) - purely cosmetic,
 // safe to extend per-page without touching the route whitelist.
 $t8NavSubtitles = [
-    'dashboard'   => 'Overview of your store operations',
+    'dashboard'   => 'Facilities & administrative overview',
     'reservation' => 'Manage facility bookings and approvals',
     'visitor'     => 'Track visitor check-in and check-out',
     'documents'   => 'Upload, version, and archive documents',
@@ -37,6 +35,7 @@ $t8NavSubtitle = $t8NavSubtitles[current_page()] ?? '';
 
 $t8UserName = function_exists('t8_current_user_name') ? t8_current_user_name() : 'Guest';
 $t8UserInitial = strtoupper(substr(trim($t8UserName), 0, 1) ?: '?');
+$t8UnreadNotifications = $t8UnreadNotifications ?? 0;
 ?>
 <header class="t8-navbar">
     <div class="t8-navbar-left">
@@ -57,10 +56,12 @@ $t8UserInitial = strtoupper(substr(trim($t8UserName), 0, 1) ?: '?');
     </div>
 
     <div class="t8-navbar-user">
-        <span class="t8-navbar-bell" aria-hidden="true">
+        <a class="t8-navbar-bell" href="<?= e(page_url('dashboard')) ?>#notifications" aria-label="View notifications<?= $t8UnreadNotifications > 0 ? ' (' . e((string) $t8UnreadNotifications) . ' unread)' : '' ?>">
             <i class="fa-regular fa-bell"></i>
-            <span class="t8-navbar-bell-dot"></span>
-        </span>
+            <?php if ($t8UnreadNotifications > 0): ?>
+                <span class="t8-navbar-bell-dot"><?= e((string) min($t8UnreadNotifications, 99)) ?></span>
+            <?php endif; ?>
+        </a>
 
         <span class="t8-navbar-avatar"><?= e($t8UserInitial) ?></span>
         <span class="t8-navbar-username-block">
