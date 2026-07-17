@@ -19,8 +19,16 @@ require_once __DIR__ . '/app/includes/helpers.php';
 t8_session_start();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // FIX (Milestone 3 review): header('Location: ...') silently
+    // overrides an already-set http_response_code() with its own
+    // default 302 - so this used to claim 405 but actually sent a
+    // redirect (confirmed with `curl -i`). A non-POST request here is
+    // not a normal navigation to recover from anyway (the only caller,
+    // templates/navbar.php, always POSTs) - send a real 405 with a
+    // small body instead of redirecting.
     http_response_code(405);
-    header('Location: ' . APP_URL . '/index.php?page=dashboard');
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo "405 Method Not Allowed - logout must be a POST request.";
     exit;
 }
 

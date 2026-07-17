@@ -24,6 +24,12 @@ require_once __DIR__ . '/app/includes/notifications.php';
 
 $routes = require __DIR__ . '/app/config/routes.php';
 
+// FIX (Milestone 3): buffer the whole render so a module can still
+// redirect() (POST/redirect/GET) after header.php/navbar.php have
+// already been required - see helpers.php's redirect() for the
+// matching ob_end_clean(). Flushed once at the very end of this file.
+ob_start();
+
 $page = $_GET['page'] ?? 'dashboard';
 $t8UnreadNotifications = t8_unread_notification_count($pdo, t8_current_user_id());
 
@@ -64,3 +70,4 @@ require __DIR__ . '/templates/navbar.php';
 </div>
 <?php
 require __DIR__ . '/templates/footer.php';
+ob_end_flush();

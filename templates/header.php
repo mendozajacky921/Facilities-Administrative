@@ -41,6 +41,9 @@ $page      = $page ?? current_page();
     <?php if ($page === 'dashboard'): ?>
         <link rel="stylesheet" href="<?= e(asset('css/dashboard.css')) ?>">
     <?php endif; ?>
+    <?php if ($page === 'reservation'): ?>
+        <link rel="stylesheet" href="<?= e(asset('css/reservation.css')) ?>">
+    <?php endif; ?>
 </head>
 <body>
 <?php $flashes = t8_flash_get(); ?>

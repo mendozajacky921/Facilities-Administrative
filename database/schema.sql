@@ -115,6 +115,7 @@ CREATE TABLE team8_reservations (
     user_id     INT NOT NULL,
     start_time  DATETIME NOT NULL,
     end_time    DATETIME NOT NULL,
+    purpose     VARCHAR(255) NULL, -- ADDED (Milestone 3): short reason for the booking
     status      VARCHAR(30) NOT NULL DEFAULT 'pending',
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -139,6 +140,7 @@ CREATE TABLE team8_reservation_approvals (
     approver_id     INT NOT NULL,
     step_order      INT NOT NULL DEFAULT 1,
     status          VARCHAR(30) NOT NULL DEFAULT 'pending',
+    remarks         TEXT NULL, -- ADDED (Milestone 3): per schema review-patch note, approvals/rejections carry a remarks field
     decided_at      DATETIME NULL,
     CONSTRAINT fk_team8_resapproval_reservation FOREIGN KEY (reservation_id) REFERENCES team8_reservations(id),
     CONSTRAINT fk_team8_resapproval_approver FOREIGN KEY (approver_id) REFERENCES users(id)

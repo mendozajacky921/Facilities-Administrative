@@ -20,5 +20,8 @@ $page = $page ?? current_page();
 <?php if ($page === 'reservation' || $page === 'contracts'): ?>
     <script src="<?= e(asset('js/validation.js')) ?>"></script>
 <?php endif; ?>
+<?php if ($page === 'reservation'): ?>
+    <script src="<?= e(asset('js/reservation.js')) ?>"></script>
+<?php endif; ?>
 </body>
 </html>
