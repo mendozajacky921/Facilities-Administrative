@@ -90,11 +90,19 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- MODULE: FACILITIES RESERVATION
 -- =========================================================
 
+-- CHANGED (Facility Management module, 2026-07-17): added
+-- `description` (optional detail shown in the admin UI) and `status`
+-- (active/archived) so facilities can be managed entirely through
+-- modules/facilities/index.php instead of direct SQL. Facilities are
+-- archived, never deleted, since team8_reservations.facility_id and
+-- team8_equipment.home_facility_id both hold FKs into this table.
 CREATE TABLE team8_facilities (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(150) NOT NULL,
     location    VARCHAR(200) NOT NULL,
     capacity    INT NOT NULL DEFAULT 0,
+    description TEXT NULL,
+    status      ENUM('active','archived') NOT NULL DEFAULT 'active',
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -115,7 +123,6 @@ CREATE TABLE team8_reservations (
     user_id     INT NOT NULL,
     start_time  DATETIME NOT NULL,
     end_time    DATETIME NOT NULL,
-    purpose     VARCHAR(255) NULL, -- ADDED (Milestone 3): short reason for the booking
     status      VARCHAR(30) NOT NULL DEFAULT 'pending',
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -134,13 +141,16 @@ CREATE TABLE team8_reservation_equipment (
     CONSTRAINT fk_team8_resequip_equipment FOREIGN KEY (equipment_id) REFERENCES team8_equipment(id)
 ) ENGINE=InnoDB;
 
+-- NOTE: kept as a single-step approval table by design decision -
+-- one row per reservation decision (step_order = 1, approver = the
+-- Administrator), even though the schema supports multi-step chains.
+-- See modules/reservation/index.php.
 CREATE TABLE team8_reservation_approvals (
     id              INT AUTO_INCREMENT PRIMARY KEY,
     reservation_id  INT NOT NULL,
     approver_id     INT NOT NULL,
     step_order      INT NOT NULL DEFAULT 1,
     status          VARCHAR(30) NOT NULL DEFAULT 'pending',
-    remarks         TEXT NULL, -- ADDED (Milestone 3): per schema review-patch note, approvals/rejections carry a remarks field
     decided_at      DATETIME NULL,
     CONSTRAINT fk_team8_resapproval_reservation FOREIGN KEY (reservation_id) REFERENCES team8_reservations(id),
     CONSTRAINT fk_team8_resapproval_approver FOREIGN KEY (approver_id) REFERENCES users(id)
@@ -348,6 +358,7 @@ ALTER TABLE team8_legal_cases
 
 CREATE INDEX idx_team8_reservations_status ON team8_reservations(status);
 CREATE INDEX idx_team8_reservations_dates ON team8_reservations(start_time, end_time);
+CREATE INDEX idx_team8_facilities_status ON team8_facilities(status);
 CREATE INDEX idx_team8_visits_status ON team8_visits(status);
 CREATE INDEX idx_team8_documents_title ON team8_documents(title);
 CREATE INDEX idx_team8_records_status ON team8_records(status);

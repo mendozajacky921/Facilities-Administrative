@@ -12,6 +12,13 @@
  * icon each route gets; it does not change routes.php's contract or
  * T8_PAGES, and a route missing from this map just falls back to a
  * generic icon instead of breaking.
+ *
+ * FIX (Facility Management, 2026-07-17): routes.php can now carry an
+ * optional 'roles' key. A route with no 'roles' key stays visible to
+ * every authenticated user, same as before - this loop only ADDS a
+ * skip for routes that declare roles the current user doesn't have
+ * (e.g. 'facilities' => admin-only). Uses the same t8_has_role()
+ * helper permissions.php already provides, no new role-checking logic.
  */
 declare(strict_types=1);
 
@@ -21,6 +28,7 @@ $active   = current_page();
 $t8NavIcons = [
     'dashboard'   => 'fa-gauge-high',
     'reservation' => 'fa-calendar-check',
+    'facilities'  => 'fa-building',
     'visitor'     => 'fa-id-card-clip',
     'documents'   => 'fa-file-lines',
     'retention'   => 'fa-box-archive',
@@ -39,6 +47,9 @@ $t8NavIcons = [
 
     <nav class="t8-sidebar-nav">
         <?php foreach ($t8Routes as $key => $route): ?>
+            <?php if (!empty($route['roles']) && !t8_has_role($route['roles'])): ?>
+                <?php continue; ?>
+            <?php endif; ?>
             <a href="<?= e(page_url($key)) ?>"
                class="t8-sidebar-link<?= $active === $key ? ' t8-sidebar-link-active' : '' ?>">
                 <i class="fa-solid <?= e($t8NavIcons[$key] ?? 'fa-circle-dot') ?>"></i>

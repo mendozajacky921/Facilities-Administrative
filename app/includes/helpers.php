@@ -47,20 +47,22 @@ if (!function_exists('page_url')) {
 
 if (!function_exists('redirect')) {
     /**
-     * FIX (Milestone 3): module files (modules/{name}/index.php) are
-     * require()'d by index.php AFTER header.php/navbar.php have
-     * already echoed HTML - a bare header('Location: ...') from a
-     * module would hit "headers already sent". index.php now wraps
-     * its whole render in ob_start()/ob_end_flush(), so this discards
-     * whatever's been buffered so far (the partial header/navbar/shell
-     * markup) before sending the redirect - the browser gets a clean
-     * 302 with no body. Standalone entry points (login.php, logout.php,
-     * dashboard.php) never start a buffer, so ob_get_level() is 0
-     * there and this is a no-op, same as before.
+     * FIX (Facility Management, 2026-07-17): index.php now wraps the
+     * whole response in ob_start() so a module (facilities,
+     * reservation) can call redirect() after a POST even though
+     * templates/header.php + navbar.php have already echoed HTML by
+     * the time the module runs. Without discarding that buffered
+     * partial-page HTML first, exit would still flush it as the body
+     * of the redirect response alongside the Location header - not
+     * wrong enough to break browsers (they ignore the body on a
+     * redirect) but incorrect and wasteful. Clearing every active
+     * buffer level here makes this safe to call from anywhere,
+     * including login.php/logout.php where no buffer is active (the
+     * while loop is then simply a no-op).
      */
     function redirect(string $url): never
     {
-        if (ob_get_level() > 0) {
+        while (ob_get_level() > 0) {
             ob_end_clean();
         }
         header('Location: ' . $url);
