@@ -3,14 +3,6 @@
  * routes.php
  * Whitelist map for the front controller (index.php).
  *
- * FIX (Medium, code review): this list used to be hand-duplicated in
- * three places (T8_PAGES in constants.php, this file, and $navItems
- * in templates/sidebar.php) with no single source of truth, so it
- * could silently drift. This file is now THE source of truth — each
- * route carries both its entry file and its nav label. T8_PAGES
- * (constants.php) derives its keys from here, and sidebar.php reads
- * the labels from here instead of keeping its own list.
- *
  * key = value of ?page=
  *   file  = module entry file, relative to project root
  *   label = text shown in the sidebar nav

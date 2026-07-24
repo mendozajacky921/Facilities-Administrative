@@ -8,12 +8,6 @@
  *
  * $pdo, e(), page_url() etc. are all available here - the front
  * controller (index.php) already required everything needed.
- *
- * REDESIGN NOTE: all query logic below is unchanged. Only the markup
- * changed - stat cards now show an icon in a colored circle, and
- * quick actions/recent activity are laid out per the reference
- * dashboard (two-column grid on wider screens via .t8-dashboard-grid,
- * dashboard.css).
  */
 
 declare(strict_types=1);
@@ -37,13 +31,6 @@ $statMeta = [
     'Open Legal Cases'     => ['icon' => 'fa-scale-balanced', 'variant' => 't8-stat-icon-warning'],
 ];
 
-// FIX (High, code review): this used to call t8_flash_set() on
-// failure, but templates/header.php already reads-and-clears the
-// flash stack (t8_flash_get()) before this module file even runs -
-// so the warning never appeared on THIS page load, only silently on
-// whatever page the user visited next. Flash is a next-request
-// pattern; a same-request error belongs in a local variable rendered
-// directly below, not a flash.
 $dbError = null;
 $recentActivities = [];
 $notifications = [];
@@ -54,7 +41,7 @@ try {
         ->fetchColumn();
 
     $stats['Visitors Today'] = (int) $pdo
-        ->query("SELECT COUNT(*) FROM team8_visits WHERE DATE(created_at) = CURDATE()")
+        ->query("SELECT COUNT(*) FROM team8_visitors WHERE DATE(check_in_time) = CURDATE()")
         ->fetchColumn();
 
     $stats['Active Contracts'] = (int) $pdo

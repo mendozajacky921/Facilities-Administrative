@@ -22,12 +22,9 @@ define('DB_TEAM8_PREFIX', 'team8_');
 define('UPLOAD_MAX_SIZE_MB', 10);
 define('UPLOAD_DIR', dirname(__DIR__, 2) . '/public/uploads');
 
-// TEMPORARY AUTH dev bypass (see login.php / logout.php / docs/Auth.md).
 // When true, skips the login form entirely and auto-logs in as the
 // seeded "Dev Tester" (user_id 1). Leave false unless doing quick
-// throwaway local testing — auth_check.php also requires
-// APP_ENV === 'local' regardless of this flag, so it can never
-// accidentally apply outside local dev.
+// local testing.
 define('AUTH_DEV_BYPASS', false);
 
 // ---- End editable section ------------------------------------------------

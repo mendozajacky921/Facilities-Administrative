@@ -2,13 +2,6 @@
 /**
  * helpers.php
  * Small stateless-ish utility functions shared by every module/template.
- *
- * FIX (Low, code review): this docblock used to claim "no DB, no
- * session" so it could be required anywhere safely, but t8_flash_*()
- * and the CSRF helpers below always touched $_SESSION - the comment
- * was wrong. Corrected: this file has no DB dependency, but several
- * functions do read/write $_SESSION, so a session must already be
- * started (see t8_session_start() below) before those are called.
  */
 
 declare(strict_types=1);
@@ -46,20 +39,6 @@ if (!function_exists('page_url')) {
 }
 
 if (!function_exists('redirect')) {
-    /**
-     * FIX (Facility Management, 2026-07-17): index.php now wraps the
-     * whole response in ob_start() so a module (facilities,
-     * reservation) can call redirect() after a POST even though
-     * templates/header.php + navbar.php have already echoed HTML by
-     * the time the module runs. Without discarding that buffered
-     * partial-page HTML first, exit would still flush it as the body
-     * of the redirect response alongside the Location header - not
-     * wrong enough to break browsers (they ignore the body on a
-     * redirect) but incorrect and wasteful. Clearing every active
-     * buffer level here makes this safe to call from anywhere,
-     * including login.php/logout.php where no buffer is active (the
-     * while loop is then simply a no-op).
-     */
     function redirect(string $url): never
     {
         while (ob_get_level() > 0) {
@@ -71,14 +50,6 @@ if (!function_exists('redirect')) {
 }
 
 if (!function_exists('t8_session_start')) {
-    /**
-     * FIX (Medium, code review): session_start() used to be called
-     * directly from three separate places (auth_check.php, login.php,
-     * logout.php) with no cookie hardening. This is now the single
-     * place that configures cookie params (httponly/samesite, and
-     * secure when APP_URL is https) before starting the session -
-     * call this instead of session_start() everywhere.
-     */
     function t8_session_start(): void
     {
         if (session_status() !== PHP_SESSION_NONE) {
